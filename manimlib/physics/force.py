@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from typing import Union, Callable
+from typing import Union
 from manimlib.mobject.mobject import Mobject
 
 from manimlib.physics.body import Body
@@ -179,3 +179,47 @@ class NewtonGravitationalForce(PairLineForce):
             force: np.ndarray = self.G * body1.mass * body2.mass * delta_pos / distance**3
             forces[body1.index] += force
             forces[body2.index] -= force
+
+
+class HarmonicBondForce(PairLineForce):
+    """
+    Harmonic bond force between two bonded atoms
+    """
+
+    def __init__(
+        self,
+        bodies: tuple[Body, Body],
+        mobjects: tuple[Union[Line, Line3D]]=(),
+        k: float=1.0,
+        r0: float=1.0
+    ) -> None:
+        """
+        Initialize a new HarmonicBondForce instance
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body, Body]): the bodies to which the force applies
+        mobjects (tuple[Line | Line3D]): line representing the force and follows
+             the bodies, must already be set to have the bodies at its
+             extremes (start=bodies[0], end=bodies[1]) (default: empty tuple)
+        k (float): force constant (default: 1.0)
+        r0 (float): equilibrium length (default: 1.0)
+        """
+        super().__init__(bodies, mobjects)
+        self.k: float = k
+        self.r0: float = r0
+    
+    def __str__(self) -> str:
+        return (f"{self.__class__.__name__}<{super().__str__()},"
+                f"k={self.k},r0={self.r0}>")
+    
+    def apply(self, forces: np.ndarray) -> None:
+        body1, body2 = self.bodies[0], self.bodies[1]
+        r12: np.ndarray = body1.position - body2.position
+        r: float = np.linalg.norm(r12)
+        if r > 0:
+            force: np.ndarray = self.k * (r - self.r0) * r12 / r
+            forces[body1.index] -= force
+            forces[body2.index] += force
+
+        

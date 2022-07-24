@@ -783,6 +783,112 @@ class NewtonGravitation2DExample(Scene):
         )
 
 
+class HydrogenMolecule2DScene(Scene):
+    def construct(self) -> None:
+        # Draw background grid
+        grid: NumberPlane = NumberPlane(
+            axis_config={"stroke_color": "#cccccc"},
+            background_line_style={"stroke_color": GREY_C},
+            opacity=0.4
+        )
+        self.add(grid)
+
+        # Define properties
+        n_masses = 2
+        y0: np.ndarray = np.array(
+            [
+                [3, 0, 0],  # position of mass1
+                [-3, 0, 0],  # position of mass2
+                [1, 0, 0],  # velocity of mass1
+                [-0.4, 0.2, 0],  # velocity of mass2
+            ]
+        )
+        masses: np.ndarray = np.array(
+            [1, 1]
+        )
+        radii: np.ndarray = np.array(
+            [0.3, 0.3]
+        )
+        # the fps value can be independent of the real FPS of the animation
+        t0, T, fps = 0, 14, 600  # may need to rise fps to get better results
+        t: np.ndarray = np.linspace(t0, T, (T-t0)*fps)
+        colors: str = (BLUE, "#39a7bd")
+        # Create circle mobjects and move them to their initial positions
+        mass_circles: list[Circle] = [
+            Circle(
+                fill_color=colors[0],
+                fill_opacity=1,
+                stroke_width=0,
+                radius=radii[i]
+            ) for i in range(n_masses)
+        ]
+        # there is no need to slice but for consistency
+        for circle, pos in zip(mass_circles, y0[:n_masses,:]):
+            circle.move_to(pos)
+        # Create the tracing lines
+        tracing_lines: list[Polyline] = [
+            Polyline(
+                pos,
+                stroke_color=colors[0],
+                stroke_width=1.5,
+                stroke_opacity=0.9
+            ) for pos, color in zip(y0[:n_masses,:], colors)
+        ]
+        
+        # Add circle mobjects to the scene
+        self.add(*tracing_lines)
+        self.add(*mass_circles)
+
+        # Create the physical system (bodies and forces)
+        bodies: list[Body] = [
+            Body(
+                mass=masses[i],
+                position=y0[i],
+                velocity=y0[i+n_masses],
+                mobj=mass_circles[i],
+                tracer=tracing_lines[i]
+            ) for i in range(n_masses)
+        ]
+        k: int = 0
+        forces: list[Force] = []
+        for i, body1 in enumerate(bodies):
+            for _, body2 in enumerate(bodies[i+1:],start=i+1):
+                line = Line(
+                            body1.position,
+                            body2.position,
+                            stroke_color=colors[1],
+                            stroke_width=8
+                       )
+                self.add(line)
+                forces.append(
+                    HarmonicBondForce(
+                        (body1, body2),
+                        mobjects=(line,),
+                        k=1.6,
+                        r0=3.5
+                    )
+                )
+                k += 1
+        system: PhysicalSystem = PhysicalSystem(bodies, forces)
+
+        self.bring_to_front(*mass_circles)  # put them on top of the force mobjects
+
+        # Wait a couple seconds
+        self.wait(2)
+
+        # Animate the physical system
+        slow_factor: float = 2.0
+        self.play(
+            EvolvePhysicalSystem(
+                system,
+                t=t,
+                scene=self,
+                background_mobjects=[grid]
+            ),
+            run_time=(T-t0)*slow_factor
+        )
+
+
 ####################################################################
 # END: jCode example scenes                                        #
 ####################################################################

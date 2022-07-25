@@ -771,7 +771,7 @@ class NewtonGravitation2DExample(Scene):
         self.wait(2)
 
         # Animate the physical system
-        slow_factor: float = 2.0
+        speed_factor: float = 0.5
         self.play(
             EvolvePhysicalSystem(
                 system,
@@ -779,7 +779,7 @@ class NewtonGravitation2DExample(Scene):
                 scene=self,
                 background_mobjects=[grid]
             ),
-            run_time=(T-t0)*slow_factor
+            run_time=(T-t0)*speed_factor
         )
 
 
@@ -877,7 +877,7 @@ class HydrogenMolecule2DScene(Scene):
         self.wait(2)
 
         # Animate the physical system
-        slow_factor: float = 2.0
+        speed_factor: float = 0.5
         self.play(
             EvolvePhysicalSystem(
                 system,
@@ -885,7 +885,141 @@ class HydrogenMolecule2DScene(Scene):
                 scene=self,
                 background_mobjects=[grid]
             ),
-            run_time=(T-t0)*slow_factor
+            run_time=(T-t0)*speed_factor
+        )
+
+
+class WaterMolecule2DScene(Scene):
+    def construct(self) -> None:
+        # Draw background grid
+        grid: NumberPlane = NumberPlane(
+            axis_config={"stroke_color": "#cccccc"},
+            background_line_style={"stroke_color": GREY_C},
+            opacity=0.4
+        )
+        self.add(grid)
+
+        # Define properties
+        n_masses = 3
+        y0: np.ndarray = np.array(
+            [
+                [3, -1, 0],  # position of mass1
+                [0, 2, 0],  # position of mass2
+                [-3, -1, 0],  # position of mass3
+                [0.5, 0, 0],  # velocity of mass1
+                [0, 0.05, 0],  # velocity of mass2
+                [-0.2, -0.2, 0],  # velocity of mass3
+            ]
+        )
+        masses: np.ndarray = np.array(
+            [1, 2, 1]
+        )
+        radii: np.ndarray = np.array(
+            [0.3, 0.5, 0.3]
+        )
+        # the fps value can be independent of the real FPS of the animation
+        t0, T, fps = 0, 30, 1000  # may need to rise fps to get better results
+        t: np.ndarray = np.linspace(t0, T, (T-t0)*fps)
+        colors: str = (BLUE, RED, BLUE)
+        # Create circle mobjects and move them to their initial positions
+        mass_circles: list[Circle] = [
+            Circle(
+                fill_color=colors[i],
+                fill_opacity=1,
+                stroke_width=0,
+                radius=radii[i]
+            ) for i in range(n_masses)
+        ]
+        # there is no need to slice but for consistency
+        for circle, pos in zip(mass_circles, y0[:n_masses,:]):
+            circle.move_to(pos)
+        # Create the tracing lines
+        tracing_lines: list[Polyline] = [
+            Polyline(
+                pos,
+                stroke_color=color,
+                stroke_width=1.5,
+                stroke_opacity=0.9
+            ) for pos, color in zip(y0[:n_masses,:], colors)
+        ]
+        
+        # Add circle mobjects to the scene
+        self.add(*tracing_lines)
+        self.add(*mass_circles)
+
+        # Create the physical system (bodies and forces)
+        bodies: list[Body] = [
+            Body(
+                mass=masses[i],
+                position=y0[i],
+                velocity=y0[i+n_masses],
+                mobj=mass_circles[i],
+                tracer=tracing_lines[i]
+            ) for i in range(n_masses)
+        ]
+        forces: list[Force] = []
+        for body1, body2 in ((bodies[0], bodies[1]), (bodies[1], bodies[2])):
+            line = Line(
+                        body1.position,
+                        body2.position,
+                        stroke_color=interpolate_color(colors[0], colors[1], 0.5),
+                        stroke_width=8
+                    )
+            self.add(line)
+            forces.append(
+                HarmonicBondForce(
+                    (body1, body2),
+                    mobjects=(line,),
+                    k=0.1,
+                    r0=2.9
+                )
+            )
+        # HarmonicAngleForce
+        r12: np.ndarray = y0[0] - y0[1]
+        angle12: float = np.arctan2(r12[1], r12[0])
+        if angle12 < 0:
+            angle12 = TAU - angle12
+        r32: np.ndarray = y0[2] - y0[1]
+        angle32: float = np.arctan2(r32[1], r32[0])
+        if angle32 < 0:
+            angle32 = TAU - angle32
+        delta_angle: float = np.abs(angle12-angle32)
+        arc: Arc = Arc(
+            angle12+PI,
+            delta_angle,
+            radius=0.85,
+            stroke_color=colors[1],
+            stroke_opacity=1,
+            stroke_width=6
+        )
+        arc.move_arc_center_to(bodies[1].position)
+        self.add(arc)
+        forces.append(
+            HarmonicAngleForce(
+                tuple(bodies),
+                (arc,),
+                k=0.7,
+                theta0=PI/2.6
+            )
+        )
+        system: PhysicalSystem = PhysicalSystem(bodies, forces)
+        print(system)
+
+        self.bring_to_front(*mass_circles)  # put them on top of the force mobjects
+
+        # Wait a couple seconds
+        self.wait(2)
+
+        # Animate the physical system
+        speed_factor: float = 1.5
+        self.play(
+            EvolvePhysicalSystem(
+                system,
+                t=t,
+                scene=self,
+                background_mobjects=[grid]
+            ),
+            run_time=(T-t0)*speed_factor
         )
 
 

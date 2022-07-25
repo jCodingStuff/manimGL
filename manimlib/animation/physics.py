@@ -104,15 +104,16 @@ class EvolvePhysicalSystem(Animation):
             pos = state[i*DIMENSIONS:(i+1)*DIMENSIONS]
             vel = state[(i+self.n_bodies)*DIMENSIONS:(i+self.n_bodies+1)*DIMENSIONS]
             body.set_velocity(vel)
-            body.set_position(pos, update_mobject_position=True)
+            body.set_position(pos, update_mobject_position=False)  # Will update mobject later
             body.update_tracer()
-            if body.tracer is not None:
-                self.scene.bring_to_back(body.tracer)
-            if body.mobj is not None:
-                self.scene.bring_to_front(body.mobj)
         # Update mobjects in forces
         for force in self.mobject.forces:
             force.update_mobjects()
+        # Update body mobject
+        for body in self.mobject.bodies:
+            body.update_mobject_position()
+            if body.mobj is not None:
+                self.scene.bring_to_front(body.mobj)
         # Handle background and foreground mobjects
         if self.background_mobjects:
             self.scene.bring_to_back(*self.background_mobjects)

@@ -70,6 +70,7 @@ from manimlib.utils.directories import *
 from manimlib.utils.file_ops import *
 from manimlib.utils.images import *
 from manimlib.utils.iterables import *
+from manimlib.utils.math import *
 from manimlib.utils.paths import *
 from manimlib.utils.rate_functions import *
 from manimlib.utils.simple_functions import *

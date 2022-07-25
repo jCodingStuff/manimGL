@@ -5,8 +5,9 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from typing import Union
-from manimlib.constants import PI, TAU
+from manimlib.constants import DEGREES, PI, TAU
 from manimlib.mobject.mobject import Mobject
+from manimlib.utils.math import arctan2
 
 from manimlib.physics.body import Body
 from manimlib.mobject.geometry import Line, Arc
@@ -214,22 +215,17 @@ class TripletArcForce(TripletForce):
         body1, body2, body3 = self.bodies[0], self.bodies[1], self.bodies[2]
         r12: np.ndarray = body1.position - body2.position
         r32: np.ndarray = body3.position - body2.position
-        angle12: float = np.arctan2(r12[1], r12[0])
-        angle32: float = np.arctan2(r32[1], r32[0])
-        if angle12 < 0:
-            angle12 = TAU + angle12
-        if angle32 < 0:
-            angle32 = TAU + angle32
+        angle12: float = arctan2(r12[1], r12[0])
+        angle32: float = arctan2(r32[1], r32[0])
         start_angle: float = min(angle12, angle32)
         end_angle: float = max(angle12, angle32)
         angle: float = end_angle - start_angle
         if angle > PI:  # Reverse > PI angles
-            start_angle = end_angle
             angle = PI - angle
         arc.become(
             Arc(
                 start_angle,
-                end_angle - start_angle,
+                angle,
                 radius=arc.radius,
                 stroke_color=arc.get_stroke_color(),
                 stroke_opacity=arc.get_stroke_opacity(),
@@ -239,7 +235,7 @@ class TripletArcForce(TripletForce):
             )
         )
         # Move the center of the arc to body2
-        arc.move_arc_center_to(body2.position)
+        # TODO: code this because ARC behaves so weirdly
 
 
 class NewtonGravitationalForce(PairLineForce):

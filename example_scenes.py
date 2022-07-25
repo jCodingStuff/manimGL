@@ -987,7 +987,7 @@ class WaterMolecule2DScene(Scene):
         arc: Arc = Arc(
             angle12+PI,
             delta_angle,
-            radius=0.85,
+            radius=0.8,
             stroke_color=colors[1],
             stroke_opacity=1,
             stroke_width=6

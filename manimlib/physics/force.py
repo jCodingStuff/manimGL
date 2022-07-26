@@ -221,12 +221,13 @@ class TripletArcForce(TripletForce):
         end_angle: float = max(angle12, angle32)
         angle: float = end_angle - start_angle
         if angle > PI:  # Reverse > PI angles
-            angle = PI - angle
+            angle = angle - TAU
         arc.become(
             Arc(
                 start_angle,
                 angle,
                 radius=arc.radius,
+                arc_center=body2.position,
                 stroke_color=arc.get_stroke_color(),
                 stroke_opacity=arc.get_stroke_opacity(),
                 stroke_width=arc.get_stroke_width(),
@@ -234,8 +235,6 @@ class TripletArcForce(TripletForce):
                 fill_opacity=arc.get_fill_opacity()
             )
         )
-        # Move the center of the arc to body2
-        # TODO: code this because ARC behaves so weirdly
 
 
 class NewtonGravitationalForce(PairLineForce):

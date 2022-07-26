@@ -970,29 +970,25 @@ class WaterMolecule2DScene(Scene):
                 HarmonicBondForce(
                     (body1, body2),
                     mobjects=(line,),
-                    k=0.1,
+                    k=0.2,
                     r0=2.9
                 )
             )
         # HarmonicAngleForce
         r12: np.ndarray = y0[0] - y0[1]
-        angle12: float = np.arctan2(r12[1], r12[0])
-        if angle12 < 0:
-            angle12 = TAU - angle12
+        angle12: float = arctan2(r12[1], r12[0])
         r32: np.ndarray = y0[2] - y0[1]
-        angle32: float = np.arctan2(r32[1], r32[0])
-        if angle32 < 0:
-            angle32 = TAU - angle32
-        delta_angle: float = np.abs(angle12-angle32)
+        angle32: float = arctan2(r32[1], r32[0])
+        delta_angle: float = np.abs(angle32-angle12)
         arc: Arc = Arc(
-            angle12+PI,
+            angle12-PI/2,
             delta_angle,
-            radius=0.8,
+            radius=0.75,
+            arc_center=bodies[1].position,
             stroke_color=colors[1],
             stroke_opacity=1,
-            stroke_width=6
+            stroke_width=8
         )
-        arc.move_arc_center_to(bodies[1].position)
         self.add(arc)
         forces.append(
             HarmonicAngleForce(
@@ -1011,7 +1007,7 @@ class WaterMolecule2DScene(Scene):
         self.wait(2)
 
         # Animate the physical system
-        speed_factor: float = 1.5
+        speed_factor: float = 2.0
         self.play(
             EvolvePhysicalSystem(
                 system,

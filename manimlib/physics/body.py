@@ -14,6 +14,7 @@ class Body:
     def __init__(
         self,
         mass: float=1.0,
+        charge: float=0.0,
         position: np.ndarray=np.array([0,0,0]),
         velocity: np.ndarray=np.array([0,0,0]),
         mobj: Mobject=None,
@@ -40,6 +41,8 @@ class Body:
                 f"Current value for mass ({self.mass}) is negative!"
             )
         
+        self.charge: float = charge
+        
         self.position: np.ndarray = position
         if len(self.position.shape) != 1 or self.position.shape[0] != DIMENSIONS:
             raise Exception(f"Position {self.position} is invalid!")
@@ -52,11 +55,17 @@ class Body:
         if self.mobj is not None:
             self.mobj.move_to(self.position)
         
+        if tracer is not None and not isinstance(tracer, Polyline):
+            raise Exception(f"The tracer instance {tracer} provided is not a Polyline")
         self.tracer: Polyline = tracer
 
         # index of the body in the physical system, to be set
         # by a PhysicalSystem
         self.index: int = -1
+
+        # Save the movement of the body during animation to update the tracer, due to a problem
+        # with obtaining vertices from an existing polyline
+        self.path: list[np.ndarray] = [self.position]
 
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}<mass={self.mass},"
@@ -78,6 +87,16 @@ class Body:
                 f"Current value for mass ({self.mass}) is negative!"
             )
     
+    def set_charge(self, charge: float) -> None:
+        """
+        Set the charge of the body
+
+        Keyword arguments
+        -----------------
+        charge (float): the new charge
+        """
+        self.charge = charge
+
     def set_position(
         self,
         position: np.ndarray,
@@ -108,17 +127,18 @@ class Body:
     
     def update_tracer(self) -> None:
         """
-        Update the tracker mobject for the body
-        (will bring the tracer to the rear part of
-        the rendering order, if scene is provided)
-
-        Keyword arguments
-        -----------------
-        scene (Scene): if provided, sets the mobject on
-                       top of the tracer (default: None)
+        Update the tracer mobject for the body
         """
         if self.tracer is not None:
-            self.tracer.add_vertices(self.position)
+            self.path.append(self.position)
+            self.tracer.become(
+                Polyline(
+                    *self.path,
+                    stroke_color=self.tracer.get_stroke_color(),
+                    stroke_opacity=self.tracer.get_stroke_opacity(),
+                    stroke_width=self.tracer.get_stroke_width()
+                )
+            )
     
     def set_velocity(self, velocity: np.ndarray) -> None:
         """

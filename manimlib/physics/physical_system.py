@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from manimlib.constants import DIMENSIONS
+from manimlib.scene.scene import Scene
 from manimlib.mobject.mobject import Group
 from manimlib.physics.body import Body
 from manimlib.physics.force import Force, NewtonGravitationalForce
@@ -49,6 +50,43 @@ class PhysicalSystem(Group):
         body_str: str = [str(body) for body in self.bodies]
         force_str: str = [str(force) for force in self.forces]
         return f"{self.__class__.__name__}<bodies={body_str},forces={force_str}>"
+
+    def update_mobjects(
+        self,
+        scene: Scene,
+        background_mobjects: tuple[Mobject]=(),
+        foreground_mobjects: tuple[Mobject]=()
+    ) -> None:
+        """
+        Update the mobjects in the system so that they
+        are correctly displayed
+
+        Keyword arguments
+        -----------------
+        scene (Scene): the scene in which the mobjects are
+        background_mobjects (tuple[Mobject]): mobjects that form part of the background and should be
+                            brought to the back of the rendering order in each animation step, first in the
+                            tuple is the furthest object in the back (default: empty tuple)
+        foreground_mobjects (tuple[Mobject]): mobjects that form part of the foreground and should be
+                            brought to the front of the rendering order in each animation step, last in the
+                            tuple is the closest object in the front (default: empty tuple)
+        """
+        for body in self.bodies:
+            body.update_tracer()
+        # Update mobjects in forces
+        for force in self.forces:
+            force.update_mobjects()
+        # Update body mobject
+        for body in self.bodies:
+            body.update_mobject_position()
+            if body.mobj is not None:
+                scene.bring_to_front(body.mobj)
+        # Background mobjects
+        if background_mobjects:
+            scene.bring_to_back(*background_mobjects)
+        # Foreground mobjects
+        if foreground_mobjects:
+            scene.bring_to_front(*foreground_mobjects)
 
     def get_n_bodies(self) -> int:
         """

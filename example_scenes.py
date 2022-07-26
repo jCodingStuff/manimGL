@@ -914,6 +914,9 @@ class WaterMolecule2DScene(Scene):
         masses: np.ndarray = np.array(
             [1, 2, 1]
         )
+        charges: np.ndarray = np.array(
+            [-1, 2, -1]  # water molecule is charge neutral
+        )
         radii: np.ndarray = np.array(
             [0.3, 0.5, 0.3]
         )
@@ -958,6 +961,7 @@ class WaterMolecule2DScene(Scene):
             ) for i in range(n_masses)
         ]
         forces: list[Force] = []
+        # HarmonicBondForce(s)
         for body1, body2 in ((bodies[0], bodies[1]), (bodies[1], bodies[2])):
             line = Line(
                         body1.position,
@@ -998,9 +1002,23 @@ class WaterMolecule2DScene(Scene):
                 theta0=PI/2.6
             )
         )
+        # CoulombForce(s)
+        for body1, body2 in (
+            (bodies[0], bodies[1]), (bodies[0], bodies[2]), (bodies[1], bodies[2])
+        ):
+            forces.append(
+                CoulombForce(
+                    (body1, body2),
+                    f=0.5
+                )
+            )
         system: PhysicalSystem = PhysicalSystem(bodies, forces)
         # Make sure the system mobjects are positioned correctly
-        system.update_mobjects(self)
+        system.update_mobjects(
+            self,
+            background_mobjects=(grid,),
+            foreground_mobjects=tuple(mass_circles)
+        )
         print(system)
 
         self.bring_to_front(*mass_circles)  # put them on top of the force mobjects
@@ -1015,7 +1033,7 @@ class WaterMolecule2DScene(Scene):
                 system,
                 t=t,
                 scene=self,
-                background_mobjects=[grid]
+                background_mobjects=(grid,)
             ),
             run_time=(T-t0)*speed_factor
         )

@@ -35,8 +35,8 @@ class EvolvePhysicalSystem(Animation):
         ]=odeint,
         t: np.ndarray=np.linspace(0, 10, DEFAULT_FPS*100),
         scene: Scene=None,
-        background_mobjects: list[Mobject]=[],
-        foreground_mobjects: list[Mobject]=[],
+        background_mobjects: tuple[Mobject]=(),
+        foreground_mobjects: tuple[Mobject]=(),
         **kwargs
     ):
         """
@@ -68,12 +68,12 @@ class EvolvePhysicalSystem(Animation):
                            (default np.linspace(0, 10, DEFAULT_FPS*100))
         scene (Scene): scene is needed if we want to keep the body mobject, force mobject,
                        body tracer rendering order (default None)
-        background_mobjects (list[Mobject]): mobjects that form part of the background and should be
+        background_mobjects (tuple[Mobject]): mobjects that form part of the background and should be
                             brought to the back of the rendering order in each animation step, first in the
-                            list is the furthest object in the back (default: empty list)
-        foreground_mobjects (list[Mobject]): mobjects that form part of the foreground and should be
+                            tuple is the furthest object in the back (default: empty tuple)
+        foreground_mobjects (tuple[Mobject]): mobjects that form part of the foreground and should be
                             brought to the front of the rendering order in each animation step, last in the
-                            list is the closest object in the front (default: empty list)
+                            tuple is the closest object in the front (default: empty tuple)
         kwargs (dict[str, Any]): arguments to be interpreted by
                the Animation superclass
         """
@@ -87,8 +87,8 @@ class EvolvePhysicalSystem(Animation):
         # Save properties
         self.n_bodies: int = self.mobject.get_n_bodies()
         self.scene: Scene = scene
-        self.background_mobjects: list[Mobject] = background_mobjects
-        self.foreground_mobjects: list[Mobject] = foreground_mobjects
+        self.background_mobjects: tuple[Mobject] = background_mobjects
+        self.foreground_mobjects: tuple[Mobject] = foreground_mobjects
         # Assemble initial state (positions and velocities)
         y0: np.ndarray = np.concatenate(
             [
@@ -112,12 +112,11 @@ class EvolvePhysicalSystem(Animation):
             body.set_velocity(vel)
             body.set_position(pos, update_mobject_position=False)  # Will update mobject later
         # Update mobjects in the system
-        self.mobject.update_mobjects(self.scene)
-        # Handle background and foreground mobjects
-        if self.background_mobjects:
-            self.scene.bring_to_back(*self.background_mobjects)
-        if self.foreground_mobjects:
-            self.scene.bring_to_front(*self.foreground_mobjects)
+        self.mobject.update_mobjects(
+            self.scene,
+            self.background_mobjects,
+            self.foreground_mobjects
+        )
 
     @staticmethod
     def dydt(

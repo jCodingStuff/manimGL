@@ -5,12 +5,12 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from typing import Union
-from manimlib.constants import PI, TAU, EPS0
+from manimlib.constants import DIMENSIONS, PI, TAU, EPS0
 from manimlib.mobject.mobject import Mobject
 from manimlib.utils.math import arctan2
 
 from manimlib.physics.body import Body
-from manimlib.mobject.geometry import Line, Arc
+from manimlib.mobject.geometry import Arrow, Line, Arc
 from manimlib.mobject.three_dimensions import Line3D
 
 
@@ -142,7 +142,7 @@ class PairLineForce(PairForce):
                  the bodies, may already be set to have the bodies at its
                  extremes (start=bodies[0], end=bodies[1]) (default: empty tuple)
         """
-        if mobjects and not (isinstance(mobjects[0], Line) or isinstance(mobjects[0], Line3D)):
+        if mobjects and not isinstance(mobjects[0], (Line, Line3D)):
             raise Exception(f"The provided mobject {mobjects[0]} is not a Line/Line3D")
         super().__init__(bodies, mobjects)
     
@@ -150,10 +150,10 @@ class PairLineForce(PairForce):
         """
         Update the line mobject to follow the bodies
         """
-        if not self.mobjects or self.mobjects[0] is None:
+        if not self.mobjects:
             return
         line: Union[Line, Line3D] = self.mobjects[0]
-        body1, body2 = self.bodies[0], self.bodies[1]
+        body1, body2 = self.bodies
         if isinstance(line, Line):  # for 2D simulations
             line.become(
                 Line(
@@ -209,10 +209,10 @@ class TripletArcForce(TripletForce):
         """
         Update the arc to follow the angle
         """
-        if not self.mobjects or self.mobjects[0] is None:
+        if not self.mobjects:
             return
         arc: Arc = self.mobjects[0]
-        body1, body2, body3 = self.bodies[0], self.bodies[1], self.bodies[2]
+        body1, body2, body3 = self.bodies
         r12: np.ndarray = body1.position - body2.position
         r32: np.ndarray = body3.position - body2.position
         angle12: float = arctan2(r12[1], r12[0])
@@ -268,7 +268,7 @@ class NewtonGravitationalForce(PairLineForce):
                 f"G={self.G}>")
 
     def apply(self, forces: np.ndarray) -> None:
-        body1, body2 = self.bodies[0], self.bodies[1]
+        body1, body2 = self.bodies
         delta_pos: np.ndarray = body2.position - body1.position
         distance: float = np.linalg.norm(delta_pos)
         if distance > 0:  # apply the force
@@ -310,7 +310,7 @@ class HarmonicBondForce(PairLineForce):
                 f"k={self.k},r0={self.r0}>")
     
     def apply(self, forces: np.ndarray) -> None:
-        body1, body2 = self.bodies[0], self.bodies[1]
+        body1, body2 = self.bodies
         r12: np.ndarray = body1.position - body2.position
         r: float = np.linalg.norm(r12)
         if r > 0:
@@ -382,7 +382,7 @@ class HarmonicAngleForce(TripletArcForce):
         return np.abs(dists[0] - np.sum(dists[1:])) <= tol
  
     def apply(self, forces: np.ndarray) -> None:
-        body1, body2, body3 = self.bodies[0], self.bodies[1], self.bodies[2]
+        body1, body2, body3 = self.bodies
         # Do not apply if angle is PI (180 degrees)
         if self.are_collinear(body1.position, body2.position, body3.position):
             return
@@ -408,7 +408,7 @@ class HarmonicAngleForce(TripletArcForce):
         forces[body2.index] += force1 + force3
 
 
-class CoulombForce(PairForce):  # TODO: create a PairArrowForce where arrows indicate the direction of the force
+class CoulombForce(PairForce):
     """
     Coulomb force between two bodies (1, 2)
     F1 = - f * (q1 * q2 / (eps_r * dist12^2)) * r12 / dist12^2
@@ -449,7 +449,7 @@ class CoulombForce(PairForce):  # TODO: create a PairArrowForce where arrows ind
                 f"f={self.f},eps_r={self.eps_r}>")
     
     def apply(self, forces: np.ndarray) -> None:
-        body1, body2 = self.bodies[0], self.bodies[1]
+        body1, body2 = self.bodies
         r12: np.ndarray = body1.position - body2.position
         dist12: float = np.linalg.norm(r12)
         # Body1

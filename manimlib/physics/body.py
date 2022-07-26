@@ -1,5 +1,4 @@
 import numpy as np
-from sympy import Poly
 
 from manimlib.constants import DIMENSIONS
 from manimlib.scene.scene import Scene

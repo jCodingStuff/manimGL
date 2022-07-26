@@ -77,6 +77,12 @@ class EvolvePhysicalSystem(Animation):
         kwargs (dict[str, Any]): arguments to be interpreted by
                the Animation superclass
         """
+        if not isinstance(mobject, PhysicalSystem):
+            raise Exception(
+                f"({self.__class__.__name__}) The mobject object "
+                "passed to the constructor is not an instance of "
+                "PhysicalSystem"
+            )
         super().__init__(mobject, **kwargs)
         # Save properties
         self.n_bodies: int = self.mobject.get_n_bodies()
@@ -105,15 +111,8 @@ class EvolvePhysicalSystem(Animation):
             vel = state[(i+self.n_bodies)*DIMENSIONS:(i+self.n_bodies+1)*DIMENSIONS]
             body.set_velocity(vel)
             body.set_position(pos, update_mobject_position=False)  # Will update mobject later
-            body.update_tracer()
-        # Update mobjects in forces
-        for force in self.mobject.forces:
-            force.update_mobjects()
-        # Update body mobject
-        for body in self.mobject.bodies:
-            body.update_mobject_position()
-            if body.mobj is not None:
-                self.scene.bring_to_front(body.mobj)
+        # Update mobjects in the system
+        self.mobject.update_mobjects(self.scene)
         # Handle background and foreground mobjects
         if self.background_mobjects:
             self.scene.bring_to_back(*self.background_mobjects)

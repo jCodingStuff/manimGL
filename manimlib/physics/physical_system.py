@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from manimlib.constants import DIMENSIONS
+from manimlib.scene.scene import Scene
 from manimlib.mobject.mobject import Group
 from manimlib.physics.body import Body
 from manimlib.physics.force import Force, NewtonGravitationalForce
@@ -49,6 +50,22 @@ class PhysicalSystem(Group):
         body_str: str = [str(body) for body in self.bodies]
         force_str: str = [str(force) for force in self.forces]
         return f"{self.__class__.__name__}<bodies={body_str},forces={force_str}>"
+
+    def update_mobjects(self, scene: Scene) -> None:
+        """
+        Update the mobjects in the system so that they
+        are correctly displayed
+        """
+        for body in self.bodies:
+            body.update_tracer()
+        # Update mobjects in forces
+        for force in self.forces:
+            force.update_mobjects()
+        # Update body mobject
+        for body in self.bodies:
+            body.update_mobject_position()
+            if body.mobj is not None:
+                scene.bring_to_front(body.mobj)
 
     def get_n_bodies(self) -> int:
         """

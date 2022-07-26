@@ -783,7 +783,7 @@ class NewtonGravitation2DExample(Scene):
         )
 
 
-class HydrogenMolecule2DScene(Scene):
+class HarmonicBond2DScene(Scene):
     def construct(self) -> None:
         # Draw background grid
         grid: NumberPlane = NumberPlane(
@@ -999,6 +999,8 @@ class WaterMolecule2DScene(Scene):
             )
         )
         system: PhysicalSystem = PhysicalSystem(bodies, forces)
+        # Make sure the system mobjects are positioned correctly
+        system.update_mobjects(self)
         print(system)
 
         self.bring_to_front(*mass_circles)  # put them on top of the force mobjects

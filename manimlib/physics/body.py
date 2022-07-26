@@ -15,6 +15,7 @@ class Body:
     def __init__(
         self,
         mass: float=1.0,
+        charge: float=0.0,
         position: np.ndarray=np.array([0,0,0]),
         velocity: np.ndarray=np.array([0,0,0]),
         mobj: Mobject=None,
@@ -40,6 +41,8 @@ class Body:
             raise Exception(
                 f"Current value for mass ({self.mass}) is negative!"
             )
+        
+        self.charge: float = charge
         
         self.position: np.ndarray = position
         if len(self.position.shape) != 1 or self.position.shape[0] != DIMENSIONS:
@@ -85,6 +88,16 @@ class Body:
                 f"Current value for mass ({self.mass}) is negative!"
             )
     
+    def set_charge(self, charge: float) -> None:
+        """
+        Set the charge of the body
+
+        Keyword arguments
+        -----------------
+        charge (float): the new charge
+        """
+        self.charge = charge
+
     def set_position(
         self,
         position: np.ndarray,

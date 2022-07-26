@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from typing import Union
-from manimlib.constants import DEGREES, PI, TAU
+from manimlib.constants import PI, TAU, EPS0
 from manimlib.mobject.mobject import Mobject
 from manimlib.utils.math import arctan2
 
@@ -406,3 +406,54 @@ class HarmonicAngleForce(TripletArcForce):
         forces[body3.index] -= force3
         # Body2
         forces[body2.index] += force1 + force3
+
+
+class CoulombForce(PairForce):  # TODO: create a PairArrowForce where arrows indicate the direction of the force
+    """
+    Coulomb force between two bodies (1, 2)
+    F1 = - f * (q1 * q2 / (eps_r * dist12^2)) * r12 / dist12^2
+    f = 1 / (1*PI*eps_0)
+    F2 = -F1
+
+    eps_0 is the vacuum permittivity
+    eps_r is the relative permittivity -> eps / esp_0, eps being the
+                                          absolute permittivity of the
+                                          dielectric
+    q1 and q2 are the charges of bodies 1 and 2, respectively
+    """
+    def __init__(
+        self,
+        bodies: tuple[Body, Body],
+        mobjects: tuple[Mobject, ...]=(),
+        f: float=1/(4*PI*EPS0),
+        eps_r: float=1.0
+    ) -> None:
+        """
+        Initialize a new PairForce object
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body, Body]): the 2 bodies to which the force applies
+        mobjects (tuple[Mobject, ...]): mobject(s) representing the force,
+                 this subclass doesn't manage them (default: empty tuple)
+        f (float): force constant together with eps_r (default: 1/(4*PI*EPS0))
+        eps_r (float): relative permittivity, force constant together with f
+              (default: 1.0) 
+        """
+        super().__init__(bodies, mobjects)
+        self.f: float = f
+        self.eps_r: float = eps_r
+    
+    def __str__(self) -> str:
+        return (f"{self.__class__.__name__}<{super().__str__()},"
+                f"f={self.f},eps_r={self.eps_r}>")
+    
+    def apply(self, forces: np.ndarray) -> None:
+        body1, body2 = self.bodies[0], self.bodies[1]
+        r12: np.ndarray = body1.position - body2.position
+        dist12: float = np.linalg.norm(r12)
+        # Body1
+        force1: np.ndarray = self.f * body1.charge * body2.charge * r12 / (self.eps_r * dist12**3)
+        forces[body1.index] -= force1
+        # Body2
+        forces[body2.index] += force1

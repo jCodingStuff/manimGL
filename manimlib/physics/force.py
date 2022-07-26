@@ -67,6 +67,33 @@ class Force(metaclass=ABCMeta):
         pass
 
 
+class SingleForce(Force):
+    """
+    Abstract force class (apply() is not implemented) that applies to
+    1 body
+    """
+    def __init__(
+        self,
+        bodies: tuple[Body],
+        mobjects: tuple[Mobject, ...]=()
+    ) -> None:
+        """
+        Initialize a new PairForce object
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body]): the body to which the force applies
+        mobjects (tuple[Mobject, ...]): mobject(s) representing the force, should
+                 be already set to a desired position (subclasses know
+                 how to update them). Regular shapes should be used for 2D
+                 simulations and 3D shapes for 3D simulations! Otherwise
+                 things MAY BREAK! (default: empty tuple)
+        """
+        if len(bodies) != 1:
+            raise Exception("You must provide exactly 1 body!")
+        super().__init__(bodies, mobjects)
+
+
 class PairForce(Force):
     """
     Abstract force class (apply() is not implemented) that applies to

@@ -1,7 +1,6 @@
 import numpy as np
 
 from manimlib.constants import DIMENSIONS
-from manimlib.scene.scene import Scene
 from manimlib.mobject.mobject import Mobject
 from manimlib.mobject.geometry import Polyline
 

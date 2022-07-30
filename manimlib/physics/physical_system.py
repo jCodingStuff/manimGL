@@ -7,7 +7,7 @@ from manimlib.physics.body import Body
 from manimlib.physics.force import Force, NewtonGravitationalForce
 import numpy as np
 
-from typing import Callable, List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from manimlib.mobject.mobject import Mobject
@@ -28,6 +28,7 @@ class PhysicalSystem(Group):
         -----------------
         bodies (list[Body]): bodies to be added to the system (default: empty list)
         forces (list[Force]): forces to be added to the system (default: empty list)
+        kwargs (dict[str, Any]): arguments to pass to the Group superclass
         """
         # Aggregate all submobjects and pass them to the superclass constructor
         mobjects: list[Mobject] = []

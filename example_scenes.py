@@ -704,7 +704,7 @@ class NewtonGravitation2DExample(Scene):
             [0.12, 0.25, 0.5]
         )
         # the fps value can be independent of the real FPS of the animation
-        t0, T, fps = 0, 14, 600  # may need to rise fps to get better results
+        t0, T, fps = 0, 14, 1500  # may need to rise fps to get better results
         t: np.ndarray = np.linspace(t0, T, (T-t0)*fps)
         colors: tuple = (RED_E, BLUE, GREEN)
         # Create circle mobjects and move them to their initial positions
@@ -771,7 +771,7 @@ class NewtonGravitation2DExample(Scene):
         self.wait(2)
 
         # Animate the physical system
-        speed_factor: float = 0.5
+        time_factor: float = 2.5
         self.play(
             EvolvePhysicalSystem(
                 system,
@@ -779,11 +779,11 @@ class NewtonGravitation2DExample(Scene):
                 scene=self,
                 background_mobjects=[grid]
             ),
-            run_time=(T-t0)*speed_factor
+            run_time=(T-t0)*time_factor
         )
 
 
-class HarmonicBond2DScene(Scene):
+class HarmonicBond2DExample(Scene):
     def construct(self) -> None:
         # Draw background grid
         grid: NumberPlane = NumberPlane(
@@ -877,7 +877,7 @@ class HarmonicBond2DScene(Scene):
         self.wait(2)
 
         # Animate the physical system
-        speed_factor: float = 0.5
+        time_factor: float = 2
         self.play(
             EvolvePhysicalSystem(
                 system,
@@ -885,11 +885,11 @@ class HarmonicBond2DScene(Scene):
                 scene=self,
                 background_mobjects=[grid]
             ),
-            run_time=(T-t0)*speed_factor
+            run_time=(T-t0)*time_factor
         )
 
 
-class WaterMolecule2DScene(Scene):
+class WaterMolecule2DExample(Scene):
     def construct(self) -> None:
         # Draw background grid
         grid: NumberPlane = NumberPlane(
@@ -1027,7 +1027,7 @@ class WaterMolecule2DScene(Scene):
         self.wait(2)
 
         # Animate the physical system
-        speed_factor: float = 2.0
+        time_factor: float = 1.0
         self.play(
             EvolvePhysicalSystem(
                 system,
@@ -1035,7 +1035,7 @@ class WaterMolecule2DScene(Scene):
                 scene=self,
                 background_mobjects=(grid,)
             ),
-            run_time=(T-t0)*speed_factor
+            run_time=(T-t0)*time_factor
         )
 
 

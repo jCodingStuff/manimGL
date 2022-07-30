@@ -115,3 +115,19 @@ Is always welcome.  As mentioned above, the [community edition](https://github.c
 
 ## License
 This project falls under the MIT license.
+
+
+## Contributions of this fork
+### Physics engine
+Support and animation for a physical system, which is a collection of bodies in space and forces acting among them.
+
+`manimlib.physics.body.Body` represents a physical body with mass, charge, position, and velocity. It can also handle a `manimlib.mobject.mobject.Mobject` instance to represent the body in space and a `manimlib.mobject.geometry.Polyline` instance to track its path through space. The latter is only to be used in 2D animations.
+
+`manimlib.physics.force.Force` is an abstract class represent a force among a set of `Body` instances. It may also manage a set of `Mobject` instances to represent the force graphically. Available subclasses of `Force` are `NewtonGravitationalForce`, `HarmonicBondForce`, `HarmonicAngleForce`, and `CoulombForce`. Each subclass handles its own parameters. For details, see `manimlib/physics/force.py`.
+
+`manimlib.physics.physical_system.PhysicalSystem` is a subclass of `manimlib.mobject.mobject.Group`, which is in turn a subclass of `Mobject`. This way, `PhysicalSystem` objects can be handled by `manimlib.animation.animation.Animation` instances. It handles a set of `Body` and `Force` instances. There exist subclasses of `PhysicalSystem` such as `GravitationalSystem` that allow the user to just define a set of bodies, and then automatically generate the forces with the `fill_forces` instance method.
+
+`manimlib.animation.physics.EvolvePhysicalSystem` is a subclass of `Animation` that evolves a `PhysicalSystem` instance over time. After the overall force on each body `i` has been computed, it computes the accelerations with `F_i = m_i * a_i`, which are then passed to the time integrator. For details, see `manimlib/animation/physics.py`.<br>
+Perhaps an important detail are the `foreground_mobjects` and `background_mobjects` parameters in the `EvolvePhysicalSystem` constructor. Since handling the `Mobject` instances in the system can become complicated, the rendering order of ALL `Mobject` objects in the scene can (and probably will) be altered. Therefore, it is important to let `EvolvePhysicalSystem` know what lays on top and below the `Mobject` instances of the system.
+
+Examples scenes illustrating how to use this engine are located in `example_scenes.py` under the class names `NewtonGravitation2DExample`, `HarmonicBond2DExample`, and `WaterMolecule2DExample`.

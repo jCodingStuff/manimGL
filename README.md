@@ -17,37 +17,12 @@ Note, there are two versions of manim.  This repository began as a personal proj
 ## Installation
 > **WARNING:** These instructions are for ManimGL _only_. Trying to use these instructions to install [ManimCommunity/manim](https://github.com/ManimCommunity/manim) or instructions there to install this version will cause problems. You should first decide which version you wish to install, then only follow the instructions for your desired version.
 > 
-> **Note**: To install manim directly through pip, please pay attention to the name of the installed package. This repository is ManimGL of 3b1b. The package name is `manimgl` instead of `manim` or `manimlib`. Please use `pip install manimgl` to install the version in this repository.
+> **Note**: Unfortunately, you cannot install this fork of `manimgl` through a package manager such as pip. Therefore, you will have to perform a manual installation.
 
 Manim runs on Python 3.7 or higher.
 
 System requirements are [FFmpeg](https://ffmpeg.org/), [OpenGL](https://www.opengl.org/) and [LaTeX](https://www.latex-project.org) (optional, if you want to use LaTeX).
 For Linux, [Pango](https://pango.gnome.org) along with its development headers are required. See instruction [here](https://github.com/ManimCommunity/ManimPango#building).
-
-
-### Directly
-
-```sh
-# Install manimgl
-pip install manimgl
-
-# Try it out
-manimgl
-```
-
-For more options, take a look at the [Using manim](#using-manim) sections further below.
-
-If you want to hack on manimlib itself, clone this repository and in that directory execute:
-
-```sh
-# Install manimgl
-pip install -e .
-
-# Try it out
-manimgl example_scenes.py OpeningManimExample
-# or
-manim-render example_scenes.py OpeningManimExample
-```
 
 ### Directly (Windows)
 

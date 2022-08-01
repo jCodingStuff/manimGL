@@ -97,7 +97,7 @@ Support and animation for a physical system, which is a collection of bodies in 
 
 `manimlib.physics.body.Body` represents a physical body with mass, charge, position, and velocity. It can also handle a `manimlib.mobject.mobject.Mobject` instance to represent the body in space and a `manimlib.mobject.geometry.Polyline` instance to track its path through space. The latter is only to be used in 2D animations.
 
-`manimlib.physics.force.Force` is an abstract class represent a force among a set of `Body` instances. It may also manage a set of `Mobject` instances to represent the force graphically. Available subclasses of `Force` are `NewtonGravitationalForce`, `HarmonicBondForce`, `HarmonicAngleForce`, and `CoulombForce`. Each subclass handles its own parameters. For details, see `manimlib/physics/force.py`.
+`manimlib.physics.force.Force` is an abstract class represent a force among a set of `Body` instances. It may also manage a set of `Mobject` instances to represent the force graphically. Available subclasses of `Force` are `NewtonGravitationalForce`, `HarmonicBondForce`, `MorseBondForce`, `HarmonicAngleForce`, and `CoulombForce`. Each subclass handles its own parameters. For details, see `manimlib/physics/force.py`.
 
 `manimlib.physics.physical_system.PhysicalSystem` is a subclass of `manimlib.mobject.mobject.Group`, which is in turn a subclass of `Mobject`. This way, `PhysicalSystem` objects can be handled by `manimlib.animation.animation.Animation` instances. It handles a set of `Body` and `Force` instances. There exist subclasses of `PhysicalSystem` such as `GravitationalSystem` that allow the user to just define a set of bodies, and then automatically generate the forces with the `fill_forces` instance method.
 

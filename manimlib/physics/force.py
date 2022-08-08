@@ -264,11 +264,48 @@ class TripletArcForce(TripletForce):
         )
 
 
-class LangevinHeatBath(SingleForce):
+class LangevinFrictionForce(SingleForce):
+    """
+    Friction force according to Langevin dynamics:
+    m_i * a_i = F_i = ... - gamma * m_i * v_i,
+    where gamma is the friction coefficient
+    """
+    def __init__(
+        self,
+        bodies: tuple[Body],
+        mobjects: tuple[Mobject, ...]=(),
+        gamma: float=1.0
+    ) -> None:
+        """
+        Initialize a new LangevinFrictionForce object
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body]): the body to which the force applies
+        mobjects (tuple[Mobject, ...]): mobject(s) representing the force, should
+                 be already set to a desired position (subclasses know
+                 how to update them). Regular shapes should be used for 2D
+                 simulations and 3D shapes for 3D simulations! Otherwise
+                 things MAY BREAK! (default: empty tuple)
+        gamma (float): friction coefficient (default: 1.0)
+        """
+        self.gamma: float = gamma
+        super().__init__(bodies, mobjects)
+    
+    def __str__(self) -> str:
+        return (f"{self.__class__.__name__}<{super().__str__()},"
+                f"gamma={self.gamma}>")
+    
+    def apply(self, forces: np.ndarray) -> None:
+        body: Body = self.bodies[0]
+        forces[body.index] -= self.gamma * body.mass * body.velocity
+
+
+class LangevinHeatBathForce(SingleForce):
     """
     Force simulating the body colliding with particles in a heat bath
     (at a certain temperature)
-    According to the Langeving equation of motion:
+    According to the Langevin equation of motion:
     m_i * a_i = F_i = ... + R_i, where R_i is a vector where the components
     come from a normal distribution with mean zero and variance
     2 * m_i * gamma * kb * T. gamma is the friction coefficient, kb is
@@ -286,7 +323,7 @@ class LangevinHeatBath(SingleForce):
         T: float=ROOM_TEMPERATURE
     ) -> None:
         """
-        Initialize a new LangevinHeatBath object
+        Initialize a new LangevinHeatBathForce object
 
         Keyword arguments
         -----------------

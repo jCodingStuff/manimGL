@@ -168,4 +168,9 @@ GREY = GREY_C
 COLORMAP_3B1B = [BLUE_E, GREEN, YELLOW, RED]
 
 # Physics
-EPS0: float = 8.85418781762039e-12
+EPS0: float = 8.85418781762039e-12  # Vacuum permittivity
+KB: float = 1.380649e-23  # Bolzmann constant
+ROOM_TEMPERATURE: float = 293.0
+
+# Randomness
+NO_SEED: int = -1

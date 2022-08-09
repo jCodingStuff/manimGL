@@ -7,7 +7,8 @@ import numpy as np
 from typing import Union
 from manimlib.constants import DIMENSIONS, KB, PI, ROOM_TEMPERATURE, TAU, EPS0, NO_SEED
 from manimlib.mobject.mobject import Mobject
-from manimlib.utils.math import arctan2
+from manimlib.utils.simple_functions import cap_magnitude
+from manimlib.utils.trigonometry import arctan2
 
 from manimlib.physics.body import Body
 from manimlib.mobject.geometry import Line, Arc
@@ -319,8 +320,9 @@ class LangevinHeatBathForce(SingleForce):
         tridimensional: bool=False,
         seed: int=NO_SEED,
         gamma: float=1.0,
-        kb: float=KB,
-        T: float=ROOM_TEMPERATURE
+        kb: float=1.0,
+        T: float=1.0,
+        max_magnitude: float=None,
     ) -> None:
         """
         Initialize a new LangevinHeatBathForce object
@@ -337,14 +339,17 @@ class LangevinHeatBathForce(SingleForce):
         seed (int): seed for the random number generator. If -1, then no seed is
              passed to the generator, yielding non-reproducible results (default: -1)
         gamma (float): friction coefficient (default: 1.0)
-        kb (float): Boltzmann constant (default: 1.380649e-23)
-        T (float): temperature (default: 293.0)
+        kb (float): Boltzmann constant (default: 1.0)
+        T (float): temperature (default: 1.0)
+        max_magnitude (float): maximum magnitude allowed for a generated random force
+                      (default: None, disabled)
         """
         self.tridimensional: bool = tridimensional
         self.generator: np.random.Generator = np.random.default_rng(seed=None if seed==NO_SEED else seed)
         self.gamma: float = gamma
         self.kb: float = kb
         self.T: float = T
+        self.max_magnitude: float = max_magnitude
         super().__init__(bodies, mobjects)
     
     def __str__(self) -> str:
@@ -360,7 +365,13 @@ class LangevinHeatBathForce(SingleForce):
         deviation: float = np.sqrt(2*body.mass*self.gamma*self.kb*self.T)
         force: np.ndarray = self.generator.normal(scale=deviation, size=DIMENSIONS)
         if not self.tridimensional:
-            force[2] == 0.0
+            force[2] = 0.
+        if self.max_magnitude is not None and cap_magnitude(force, self.max_magnitude):
+            print(
+                f"({self.__class__.__name__}) WARNING: "
+                f"force was capped to maximum "
+                f"magnitude ({self.max_magnitude})"
+            )
         forces[body.index] += force
         
 

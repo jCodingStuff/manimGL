@@ -906,9 +906,12 @@ class WaterMolecule2DExample(Scene):
                 [3., -1., 0.],  # position of mass1
                 [0., 2., 0.],  # position of mass2
                 [-3., -1., 0.],  # position of mass3
-                [0.5, 0., 0.],  # velocity of mass1
-                [0., 0.05, 0.],  # velocity of mass2
-                [-0.2, -0.2, 0.],  # velocity of mass3
+                # [0.5, 0., 0.],  # velocity of mass1
+                [0., 0., 0.],  # velocity of mass1
+                # [0., 0.05, 0.],  # velocity of mass2
+                [0., 0., 0.],  # velocity of mass2
+                # [-0.2, -0.2, 0.],  # velocity of mass3
+                [0., 0., 0.],  # velocity of mass3
             ]
         )
         masses: np.ndarray = np.array(
@@ -975,7 +978,7 @@ class WaterMolecule2DExample(Scene):
                 HarmonicBondForce(
                     (body1, body2),
                     mobjects=(line,),
-                    k=0.15,
+                    k=0.3,
                     r0=2.9
                 )
             )
@@ -1014,19 +1017,26 @@ class WaterMolecule2DExample(Scene):
                 )
             )
         # LangevinHeatBathForce(s)
-        # T: float = 0.1
-        # kb: float = 0.1
-        # global_seed: int = 1
-        # generator: np.random.Generator = np.random.default_rng(seed=global_seed)
-        # for body in bodies:
-        #     forces.append(
-        #         LangevinHeatBathForce(
-        #             (body,),
-        #             seed=generator.integers(0, 9999),
-        #             kb=kb,
-        #             T=T
-        #         )
-        #     )
+        temp: float = 20.0
+        global_seed: int = 4
+        max_magnitude: float = 60.0
+        generator: np.random.Generator = np.random.default_rng(seed=global_seed)
+        for body in bodies:
+            forces.append(
+                LangevinHeatBathForce(
+                    (body,),
+                    seed=generator.integers(0, 9999),
+                    T=temp,
+                    max_magnitude=max_magnitude
+                )
+            )
+        # LangevinFrictionForce(s)
+        for body in bodies:
+            forces.append(
+                LangevinFrictionForce(
+                    (body,)
+                )
+            )
         # Create system
         system: PhysicalSystem = PhysicalSystem(bodies, forces)
         # Make sure the system mobjects are positioned correctly

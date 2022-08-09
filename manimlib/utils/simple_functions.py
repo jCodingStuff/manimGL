@@ -40,6 +40,26 @@ def clip(a, min_a, max_a):
     return a
 
 
+def cap_magnitude(v: np.ndarray, max_magnitude: float) -> bool:
+    """
+    Cap (in-place) the magnitude of a vector by a given maximum value
+
+    Keyword arguments
+    -----------------
+    v (np.ndarray): the vector
+    max_magnitude (float): the allowed maximum magnitude
+
+    Returns
+    -----------------
+    True if the vector was capped, false otherwise
+    """
+    magnitude: float = np.linalg.norm(v)
+    if magnitude > max_magnitude:
+        v *= max_magnitude/magnitude
+        return True
+    return False
+
+
 def fdiv(a, b, zero_over_zero_value=None):
     if zero_over_zero_value is not None:
         out = np.full_like(a, zero_over_zero_value)

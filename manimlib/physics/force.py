@@ -625,8 +625,9 @@ class CoulombForce(PairForce):
         body1, body2 = self.bodies
         r12: np.ndarray = body1.position - body2.position
         dist12: float = np.linalg.norm(r12)
-        # Body1
-        force1: np.ndarray = self.f * body1.charge * body2.charge * r12 / (self.eps_r * dist12**3)
-        forces[body1.index] -= force1
-        # Body2
-        forces[body2.index] += force1
+        if dist12 > 0:
+            # Body1
+            force1: np.ndarray = self.f * body1.charge * body2.charge * r12 / (self.eps_r * dist12**3)
+            forces[body1.index] += force1
+            # Body2
+            forces[body2.index] -= force1

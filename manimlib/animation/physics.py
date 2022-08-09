@@ -154,7 +154,8 @@ class EvolvePhysicalSystem(Animation):
         # Apply the forces in the system
         for force in system.forces:
             force.apply(forces)
+        print(f"{forces}\n")
         # Get the accelerations (a=F/m)
-        accelerations: np.ndarray = forces/masses.reshape((n_bodies,1))
+        accelerations: np.ndarray = forces/masses.reshape((n_bodies, 1))
         # Return derivative of the state
         return np.concatenate((velocities.flatten(), accelerations.flatten()))

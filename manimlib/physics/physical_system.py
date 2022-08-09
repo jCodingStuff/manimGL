@@ -120,7 +120,50 @@ class PhysicalSystem(Group):
         """
         return np.array([body.mass for body in self.bodies])
 
-    def update_positions(self, positions: np.ndarray) -> None:
+    def compute_forces(self) -> np.ndarray:
+        """
+        Compute the overall force exerted on each body in the system
+
+        Returns
+        -----------------
+        An np.ndarray[n_bodies, DIMENSIONS] of floats containing
+        the forces
+        """
+        forces: np.ndarray = np.zeros((self.get_n_bodies(), DIMENSIONS))
+        for force in self.forces:
+            force.apply(forces)
+        return forces
+    
+    def compute_accelerations(self) -> np.ndarray:
+        """
+        Compute the overall acceleration resulting on each body in
+        the system
+
+        Returns
+        -----------------
+        An np.ndarray[n_bodies, DIMENSIONS] of floats containing
+        the accelerations
+        """
+        return self.compute_forces() / self.get_masses().reshape((self.get_n_bodies(), 1))
+
+    def get_positions(self) -> np.ndarray:
+        """
+        Get the position of each body
+
+        Returns
+        -----------------
+        An np.ndarray[n_bodies, DIMENSIONS] with the positions
+        """
+        positions: np.ndarray = np.zeros((self.get_n_bodies(), DIMENSIONS))
+        for i, body in enumerate(self.bodies):
+            positions[i] = body.position
+        return positions
+
+    def update_positions(
+        self,
+        positions: np.ndarray,
+        update_mobjects_position: bool=False
+    ) -> None:
         """
         Update positions of the bodies in the system
 
@@ -128,6 +171,9 @@ class PhysicalSystem(Group):
         -----------------
         positions (np.ndarray[n_bodies, DIMENSIONS]): position for
                   each body in the system
+        update_mobjects_position (bool): True if we want to update the position
+                                 of the mobject of each body, False otherwise
+                                 (default: False)
         """
         desired_shape: tuple[int, int] = (self.get_n_bodies(), DIMENSIONS)
         if positions.shape != desired_shape:
@@ -136,8 +182,21 @@ class PhysicalSystem(Group):
                 f" does not match {desired_shape}"
             )
         for body, position in zip(self.bodies, positions):
-            body.set_position(position)
+            body.set_position(position, update_mobject_position=update_mobjects_position)
     
+    def get_velocities(self) -> np.ndarray:
+        """
+        Get the velocity of each body
+
+        Returns
+        -----------------
+        An np.ndarray[n_bodies, DIMENSIONS] with the velocities
+        """
+        velocities: np.ndarray = np.zeros((self.get_n_bodies(), DIMENSIONS))
+        for i, body in enumerate(self.bodies):
+            velocities[i] = body.velocity
+        return velocities
+
     def update_velocities(self, velocities: np.ndarray) -> None:
         """
         Update velocities of the bodies in the system

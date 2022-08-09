@@ -903,19 +903,22 @@ class WaterMolecule2DExample(Scene):
         n_masses = 3
         y0: np.ndarray = np.array(
             [
-                [3, -1, 0],  # position of mass1
-                [0, 2, 0],  # position of mass2
-                [-3, -1, 0],  # position of mass3
-                [0.5, 0, 0],  # velocity of mass1
-                [0, 0.05, 0],  # velocity of mass2
-                [-0.2, -0.2, 0],  # velocity of mass3
+                [3., -1., 0.],  # position of mass1
+                [0., 2., 0.],  # position of mass2
+                [-3., -1., 0.],  # position of mass3
+                # [0.5, 0., 0.],  # velocity of mass1
+                [0., 0., 0.],  # velocity of mass1
+                # [0., 0.05, 0.],  # velocity of mass2
+                [0., 0., 0.],  # velocity of mass2
+                # [-0.2, -0.2, 0.],  # velocity of mass3
+                [0., 0., 0.],  # velocity of mass3
             ]
         )
         masses: np.ndarray = np.array(
-            [1, 2, 1]
+            [1., 2., 1.]
         )
         charges: np.ndarray = np.array(
-            [-1, 2, -1]  # water molecule is charge neutral
+            [-1., 2., -1.]  # water molecule is charge neutral
         )
         radii: np.ndarray = np.array(
             [0.3, 0.5, 0.3]
@@ -954,6 +957,7 @@ class WaterMolecule2DExample(Scene):
         bodies: list[Body] = [
             Body(
                 mass=masses[i],
+                charge=charges[i],
                 position=y0[i],
                 velocity=y0[i+n_masses],
                 mobj=mass_circles[i],
@@ -974,7 +978,7 @@ class WaterMolecule2DExample(Scene):
                 HarmonicBondForce(
                     (body1, body2),
                     mobjects=(line,),
-                    k=0.2,
+                    k=0.3,
                     r0=2.9
                 )
             )
@@ -987,11 +991,11 @@ class WaterMolecule2DExample(Scene):
         arc: Arc = Arc(
             angle12-PI/2,
             delta_angle,
-            radius=0.75,
+            radius=0.70,
             arc_center=bodies[1].position,
             stroke_color=colors[1],
             stroke_opacity=1,
-            stroke_width=8
+            stroke_width=7
         )
         self.add(arc)
         forces.append(
@@ -1009,9 +1013,31 @@ class WaterMolecule2DExample(Scene):
             forces.append(
                 CoulombForce(
                     (body1, body2),
-                    f=0.5
+                    f=0.05
                 )
             )
+        # LangevinHeatBathForce(s)
+        temp: float = 20.0
+        global_seed: int = 4
+        max_magnitude: float = 60.0
+        generator: np.random.Generator = np.random.default_rng(seed=global_seed)
+        for body in bodies:
+            forces.append(
+                LangevinHeatBathForce(
+                    (body,),
+                    seed=generator.integers(0, 9999),
+                    T=temp,
+                    max_magnitude=max_magnitude
+                )
+            )
+        # LangevinFrictionForce(s)
+        for body in bodies:
+            forces.append(
+                LangevinFrictionForce(
+                    (body,)
+                )
+            )
+        # Create system
         system: PhysicalSystem = PhysicalSystem(bodies, forces)
         # Make sure the system mobjects are positioned correctly
         system.update_mobjects(

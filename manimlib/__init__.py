@@ -53,9 +53,10 @@ from manimlib.mobject.types.vectorized_mobject import *
 from manimlib.mobject.value_tracker import *
 from manimlib.mobject.vector_field import *
 
-from manimlib.physics.physical_system import *
-from manimlib.physics.force import *
 from manimlib.physics.body import *
+from manimlib.physics.force import *
+from manimlib.physics.integrator import *
+from manimlib.physics.physical_system import *
 
 from manimlib.scene.interactive_scene import *
 from manimlib.scene.scene import *
@@ -70,9 +71,9 @@ from manimlib.utils.directories import *
 from manimlib.utils.file_ops import *
 from manimlib.utils.images import *
 from manimlib.utils.iterables import *
-from manimlib.utils.math import *
 from manimlib.utils.paths import *
 from manimlib.utils.rate_functions import *
 from manimlib.utils.simple_functions import *
 from manimlib.utils.sounds import *
 from manimlib.utils.space_ops import *
+from manimlib.utils.trigonometry import *

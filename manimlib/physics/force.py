@@ -5,12 +5,13 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 
 from typing import Union
-from manimlib.constants import DIMENSIONS, PI, TAU, EPS0
+from manimlib.constants import DIMENSIONS, KB, PI, ROOM_TEMPERATURE, TAU, EPS0, NO_SEED
 from manimlib.mobject.mobject import Mobject
-from manimlib.utils.math import arctan2
+from manimlib.utils.simple_functions import cap_magnitude
+from manimlib.utils.trigonometry import arctan2
 
 from manimlib.physics.body import Body
-from manimlib.mobject.geometry import Arrow, Line, Arc
+from manimlib.mobject.geometry import Line, Arc
 from manimlib.mobject.three_dimensions import Line3D
 
 
@@ -78,7 +79,7 @@ class SingleForce(Force):
         mobjects: tuple[Mobject, ...]=()
     ) -> None:
         """
-        Initialize a new PairForce object
+        Initialize a new SingleForce object
 
         Keyword arguments
         -----------------
@@ -263,6 +264,116 @@ class TripletArcForce(TripletForce):
             )
         )
 
+
+class LangevinFrictionForce(SingleForce):
+    """
+    Friction force according to Langevin dynamics:
+    m_i * a_i = F_i = ... - gamma * m_i * v_i,
+    where gamma is the friction coefficient
+    """
+    def __init__(
+        self,
+        bodies: tuple[Body],
+        mobjects: tuple[Mobject, ...]=(),
+        gamma: float=1.0
+    ) -> None:
+        """
+        Initialize a new LangevinFrictionForce object
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body]): the body to which the force applies
+        mobjects (tuple[Mobject, ...]): mobject(s) representing the force, should
+                 be already set to a desired position (subclasses know
+                 how to update them). Regular shapes should be used for 2D
+                 simulations and 3D shapes for 3D simulations! Otherwise
+                 things MAY BREAK! (default: empty tuple)
+        gamma (float): friction coefficient (default: 1.0)
+        """
+        self.gamma: float = gamma
+        super().__init__(bodies, mobjects)
+    
+    def __str__(self) -> str:
+        return (f"{self.__class__.__name__}<{super().__str__()},"
+                f"gamma={self.gamma}>")
+    
+    def apply(self, forces: np.ndarray) -> None:
+        body: Body = self.bodies[0]
+        forces[body.index] -= self.gamma * body.mass * body.velocity
+
+
+class LangevinHeatBathForce(SingleForce):
+    """
+    Force simulating the body colliding with particles in a heat bath
+    (at a certain temperature)
+    According to the Langevin equation of motion:
+    m_i * a_i = F_i = ... + R_i, where R_i is a vector where the components
+    come from a normal distribution with mean zero and variance
+    2 * m_i * gamma * kb * T. gamma is the friction coefficient, kb is
+    the Boltzmann constant, and T is the temperature
+    """
+
+    def __init__(
+        self,
+        bodies: tuple[Body],
+        mobjects: tuple[Mobject, ...]=(),
+        tridimensional: bool=False,
+        seed: int=NO_SEED,
+        gamma: float=1.0,
+        kb: float=1.0,
+        T: float=1.0,
+        max_magnitude: float=None,
+    ) -> None:
+        """
+        Initialize a new LangevinHeatBathForce object
+
+        Keyword arguments
+        -----------------
+        bodies (tuple[Body]): the body to which the force applies
+        mobjects (tuple[Mobject, ...]): mobject(s) representing the force, should
+                 be already set to a desired position (subclasses know
+                 how to update them). Regular shapes should be used for 2D
+                 simulations and 3D shapes for 3D simulations! Otherwise
+                 things MAY BREAK! (default: empty tuple)
+        tridimensional (bool): False if system is 2D, True if 3D (default: False)
+        seed (int): seed for the random number generator. If -1, then no seed is
+             passed to the generator, yielding non-reproducible results (default: -1)
+        gamma (float): friction coefficient (default: 1.0)
+        kb (float): Boltzmann constant (default: 1.0)
+        T (float): temperature (default: 1.0)
+        max_magnitude (float): maximum magnitude allowed for a generated random force
+                      (default: None, disabled)
+        """
+        self.tridimensional: bool = tridimensional
+        self.generator: np.random.Generator = np.random.default_rng(seed=None if seed==NO_SEED else seed)
+        self.gamma: float = gamma
+        self.kb: float = kb
+        self.T: float = T
+        self.max_magnitude: float = max_magnitude
+        super().__init__(bodies, mobjects)
+    
+    def __str__(self) -> str:
+        return (f"{self.__class__.__name__}<{super().__str__()},"
+                f"tridimensional={self.tridimensional},"
+                f"generator={self.generator},gamma={self.gamma},"
+                f"kb={self.kb},T={self.T}>")
+    
+    def apply(self, forces: np.ndarray) -> None:
+        body: Body = self.bodies[0]
+        # We work out the deviation every time just in case in the future
+        # we want to perform simulations with variable temperature
+        deviation: float = np.sqrt(2*body.mass*self.gamma*self.kb*self.T)
+        force: np.ndarray = self.generator.normal(scale=deviation, size=DIMENSIONS)
+        if not self.tridimensional:
+            force[2] = 0.
+        if self.max_magnitude is not None and cap_magnitude(force, self.max_magnitude):
+            print(
+                f"({self.__class__.__name__}) WARNING: "
+                f"force was capped to maximum "
+                f"magnitude ({self.max_magnitude})"
+            )
+        forces[body.index] += force
+        
 
 class NewtonGravitationalForce(PairLineForce):
     """
@@ -525,8 +636,9 @@ class CoulombForce(PairForce):
         body1, body2 = self.bodies
         r12: np.ndarray = body1.position - body2.position
         dist12: float = np.linalg.norm(r12)
-        # Body1
-        force1: np.ndarray = self.f * body1.charge * body2.charge * r12 / (self.eps_r * dist12**3)
-        forces[body1.index] -= force1
-        # Body2
-        forces[body2.index] += force1
+        if dist12 > 0:
+            # Body1
+            force1: np.ndarray = self.f * body1.charge * body2.charge * r12 / (self.eps_r * dist12**3)
+            forces[body1.index] += force1
+            # Body2
+            forces[body2.index] -= force1

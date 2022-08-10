@@ -159,7 +159,7 @@ class PhysicalSystem(Group):
             positions[i] = body.position
         return positions
 
-    def update_positions(
+    def set_positions(
         self,
         positions: np.ndarray,
         update_mobjects_position: bool=False
@@ -197,7 +197,7 @@ class PhysicalSystem(Group):
             velocities[i] = body.velocity
         return velocities
 
-    def update_velocities(self, velocities: np.ndarray) -> None:
+    def set_velocities(self, velocities: np.ndarray) -> None:
         """
         Update velocities of the bodies in the system
 
@@ -214,6 +214,37 @@ class PhysicalSystem(Group):
             )
         for body, velocity in zip(self.bodies, velocities):
             body.set_velocity(velocity)
+
+    def set(
+        self,
+        **kwargs
+    ) -> None:
+        """
+        Set properties of the system
+
+        Keyword arguments
+        -----------------
+        kwargs (dict[str, Any]): the key determines the name of the
+               property to set, whose existance is checked by ensuring
+               that there exists an instance method with the name
+               'set_<key>'
+        """
+        for k, v in kwargs.items():
+            setter_name: str = f"set_{k}"
+            if hasattr(self, setter_name):
+                setter = getattr(self, setter_name)
+                if callable(setter):
+                    setter(v)
+                else:
+                    raise Exception(
+                        f"({self.__class__.__name__}) {setter_name} "
+                        f"found but not callable"
+                    )
+            else:
+                raise Exception(
+                    f"({self.__class__.__name__}) No instance "
+                    f"member named {setter_name} found"
+                )
 
     def fill_forces(self, **kwargs) -> None:
         """

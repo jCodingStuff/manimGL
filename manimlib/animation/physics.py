@@ -32,6 +32,7 @@ class EvolvePhysicalSystem(Animation):
             tuple[np.ndarray, np.ndarray]
         ]=symplectic_euler,
         t: np.ndarray=np.linspace(0, 10, DEFAULT_FPS*100),
+        verbose: int=1,
         scene: Scene=None,
         background_mobjects: tuple[Mobject]=(),
         foreground_mobjects: tuple[Mobject]=(),
@@ -46,18 +47,20 @@ class EvolvePhysicalSystem(Animation):
         integrator (Callable[
                 [
                     PhysicalSystem,
-                    np.ndarray
+                    np.ndarray,
+                    int
                 ],
                 tuple[np.ndarray, np.ndarray]
-            ]): function in terms of (system, t) returning two tensors (pos, vel) where
+            ]): function in terms of (system, t, verbose) returning two tensors (pos, vel) where
                 pos[i,j,k] represents the component along the k-th axis of the position of
                 body j at time-point i (same holds por vel).
                 For an example of the 'integrator' function, see symplectic_euler in
                 manimlib.physics.integrator, which is the default value.
         t (np.ndarray[N]): vector containing all time-points of integration, must be monotonic
                            (default np.linspace(0, 10, DEFAULT_FPS*100))
+        verbose (int): level of verbosity of the integrator (default: 1)
         scene (Scene): scene is needed if we want to keep the body mobject, force mobject,
-                       body tracer rendering order (default None)
+                       body tracer rendering order (default: None)
         background_mobjects (tuple[Mobject]): mobjects that form part of the background and should be
                             brought to the back of the rendering order in each animation step, first in the
                             tuple is the furthest object in the back (default: empty tuple)
@@ -76,19 +79,22 @@ class EvolvePhysicalSystem(Animation):
         super().__init__(mobject, **kwargs)
         # Save properties
         self.n_bodies: int = self.mobject.get_n_bodies()
+        self.n_tpoints: int = t.shape[0]
         self.scene: Scene = scene
         self.background_mobjects: tuple[Mobject] = background_mobjects
         self.foreground_mobjects: tuple[Mobject] = foreground_mobjects
         # Integrate the system
-        self.positions, self.velocities = integrator(self.mobject, t)
+        self.positions, self.velocities = integrator(self.mobject, t, verbose)
 
     def interpolate_mobject(self, alpha: float) -> None:
         row_index: int = min(
-            int(np.floor(alpha*self.positions.shape[0])),
-            self.positions.shape[0]-1
+            int(np.floor(alpha*self.n_tpoints)),
+            self.n_tpoints-1
         )
-        self.mobject.update_positions(self.positions[row_index])
-        self.mobject.update_velocities(self.velocities[row_index])
+        self.mobject.set(
+            positions=self.positions[row_index],
+            velocities=self.velocities[row_index]
+        )
         # Update mobjects in the system
         self.mobject.update_mobjects(
             self.scene,

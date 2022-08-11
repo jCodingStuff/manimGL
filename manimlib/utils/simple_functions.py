@@ -100,7 +100,8 @@ def binary_search(function,
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
-    From https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters?noredirect=1&lq=1
+    From shorturl.at/kpSY1
+    Permanent link: shorturl.at/ADMU3
 
     Call in a loop to create terminal progress bar
     @params:

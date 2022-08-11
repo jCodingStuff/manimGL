@@ -74,6 +74,9 @@ def rk4(
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Perform 4th order Runge-Kutta integration of the physical system
+    Not adequate for stochastic systems. This is due to the fact that RK4 computes
+    the new state with a weighted average of "present and future" systems, thus
+    smoothing the effect of stochastic forces.
 
     Keyword arguments
     -----------------
